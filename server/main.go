@@ -128,7 +128,7 @@ func RegisterExecuteJS(url string, js string) (mongo.ObjectId, os.Error) {
 
 func GetExecutedJS(execId mongo.ObjectId, retry int) []byte {
 	if retry > 20 {
-		fmt.Printf("ERROR: failed to get result json(%d)\n", execId)
+		fmt.Printf("ERROR: failed to get result json(%q)\n", execId)
 		return []byte{}
 	}
 
@@ -136,7 +136,7 @@ func GetExecutedJS(execId mongo.ObjectId, retry int) []byte {
 	var rs ExecuteRs
 	err := c.Find(ExecuteRs{Id: execId}).One(&rs)
 	if err != nil || rs.Json == "" {
-		fmt.Printf("INFO: ExecID=%d waiting...\n", execId)
+		fmt.Printf("INFO: ExecID=%q waiting...\n", execId)
 		time.Sleep(Second)
 		return GetExecutedJS(execId, retry + 1)
 	}
