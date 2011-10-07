@@ -26,7 +26,6 @@ jQuery(function(){
 	}
 
 	var execId = getExecuteId();
-	console.log("ExecuteID=%s",execId);
 	if (!execId) return;
 
 	var js = jQuery.ajax({
@@ -36,7 +35,6 @@ jQuery(function(){
 		cache: false,
 		dataType: "text"
 	}).responseText;
-	console.log(js);
 
 	var result = {};
 	try {
@@ -46,7 +44,7 @@ jQuery(function(){
 		console.err(e);
 	}
 
-	console.log("update json");
+	console.log("UpdateJson ID=%s", execId);
 	console.log(result);
 	jQuery.post(
 		G_OPTIONS.api_url + "/internal/update_json",
