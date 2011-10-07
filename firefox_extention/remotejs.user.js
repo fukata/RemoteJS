@@ -21,6 +21,10 @@ var G_OPTIONS = {
 };
 // ==============================================
 jQuery(function(){
+	if (window.opener || window != window.parent) {
+		return;
+	}
+
 	var execId = getExecuteId();
 	console.log("ExecuteID=%s",execId);
 	if (!execId) return;
