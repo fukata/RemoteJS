@@ -335,7 +335,6 @@ func PageInternalJs(w http.ResponseWriter, req *http.Request) {
 	execId, err := mongo.NewObjectIdHex(id)
 	log.Printf("Search ExecuteId=%s", execId)
 	err = c.Find(map[string]interface{}{"_id": execId}).One(&rs);
-	log.Println(rs)
 	if err != nil {
 		jsonb = []byte(`{error: "Not found."}`)
 	} else {
@@ -345,7 +344,32 @@ func PageInternalJs(w http.ResponseWriter, req *http.Request) {
 	w.Write(jsonb)
 }
 
-func PageInternalUpdateExecutedJson(w http.ResponseWriter, req *http.Request) {
+func PageInternalUpdateJson(w http.ResponseWriter, req *http.Request) {
+	id := req.FormValue("id")
+	updateJson := req.FormValue("json")
+	header := w.Header()
+	c := mongo.Collection{conn, fmt.Sprintf("%s.executes", appConfig.DbName), mongo.DefaultLastErrorCmd}
+	var (
+		rs ExecuteRs
+		jsonb []byte
+		err os.Error
+	)
+	execId, err := mongo.NewObjectIdHex(id)
+	log.Printf("Search ExecuteId=%s", execId)
+	err = c.Find(map[string]interface{}{"_id": execId}).One(&rs);
+	if err != nil {
+		jsonb = []byte(`{error: "Not found."}`)
+	} else {
+		err = c.Update(mongo.M{"_id": execId}, mongo.M{"json": updateJson})
+		if err != nil {
+			jsonb = []byte(`{result: "failed"}`)
+		} else {
+			jsonb = []byte(`{result: "success"}`)
+		}
+	}
+
+	header.Set("Content-Type", "application/json")
+	w.Write(jsonb)
 }
 
 func init() {
@@ -382,7 +406,7 @@ func main() {
 	http.HandleFunc("/execute_js", PageExecuteJS)
 	http.HandleFunc("/internal/js", PageInternalJs)
 	http.HandleFunc("/internal/get_execute_info", PageInternalGetExecuteInfo)
-	http.HandleFunc("/internal/update_executed_json", PageInternalUpdateExecutedJson)
+	http.HandleFunc("/internal/update_json", PageInternalUpdateJson)
 	err = http.ListenAndServe(fmt.Sprintf(":%d", portNo), nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err.String())
