@@ -340,7 +340,9 @@ func PageInternalJs(w http.ResponseWriter, req *http.Request) {
 	} else {
 		jsonb = []byte(rs.Js)
 	}
-	header.Set("Content-Type", "text/javascript")
+
+	header.Set("Access-Control-Allow-Origin", "*")
+	header.Set("Content-Type", "text/plain; charset=UTF-8")
 	w.Write(jsonb)
 }
 
@@ -360,7 +362,8 @@ func PageInternalUpdateJson(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		jsonb = []byte(`{error: "Not found."}`)
 	} else {
-		err = c.Update(mongo.M{"_id": execId}, mongo.M{"json": updateJson})
+		rs.Json = updateJson;
+		err = c.Update(mongo.M{"_id": execId}, rs)
 		if err != nil {
 			jsonb = []byte(`{result: "failed"}`)
 		} else {
@@ -368,6 +371,7 @@ func PageInternalUpdateJson(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
+	header.Set("Access-Control-Allow-Origin", "*")
 	header.Set("Content-Type", "application/json")
 	w.Write(jsonb)
 }
