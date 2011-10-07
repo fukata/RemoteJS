@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"template"
 	"strings"
+	"json"
 	"./appconfig"
 	"github.com/garyburd/go-mongo"
 )
@@ -93,7 +94,7 @@ func ExecuteJS(url string, js string) []byte {
 	environ := os.Environ()
 	environ = append(environ, fmt.Sprintf("DISPLAY=:%d.0", display))
 	command := "/usr/bin/firefox"
-	args := []string {command, "-display", fmt.Sprintf(":%d", display), "-remote", fmt.Sprintf("openUrl(%s)", url), "-P", fmt.Sprintf("P%d", display)}
+	args := []string {command, "-display", fmt.Sprintf(":%d", display), "-remote", fmt.Sprintf("openUrl(%s)", AppendExecIdUrl(url, execId)), "-P", fmt.Sprintf("P%d", display)}
 	RunCommand(command, args, environ, nil)
 
 	// Waiting for registered result json.
@@ -117,6 +118,18 @@ func ExecuteJS(url string, js string) []byte {
 	<-sem // Release
 	log.Print("ExecuteJS end")
 	return json
+}
+
+func AppendExecIdUrl(url string, execId mongo.ObjectId) string {
+	sep := "&"
+	if strings.Index(url, "?") == -1  {
+		url = url + "?"
+		sep = ""
+	}
+
+	url = fmt.Sprintf("%s%s__eid=%s", url, sep, execId)
+	log.Printf("AppendExecIdUrl=%s", url)
+	return url
 }
 
 func RegisterExecuteJS(url string, js string) (mongo.ObjectId, os.Error) {
@@ -281,6 +294,60 @@ func PageIndex(w http.ResponseWriter, req *http.Request) {
 	t.Execute(w, p)
 }
 
+func PageInternalGetExecuteInfo(w http.ResponseWriter, req *http.Request) {
+	id := req.FormValue("id")
+	header := w.Header()
+	c := mongo.Collection{conn, fmt.Sprintf("%s.executes", appConfig.DbName), mongo.DefaultLastErrorCmd}
+	var (
+		rs ExecuteRs
+		jsonb []byte
+		err os.Error
+	)
+	execId, err := mongo.NewObjectIdHex(id)
+	log.Printf("Search ExecuteId=%s", execId)
+	err = c.Find(map[string]interface{}{"_id": execId}).One(&rs);
+	log.Println(rs)
+	if err != nil {
+		jsonb = []byte(`{error: "Not found."}`)
+	} else {
+		jsonb, err = json.Marshal(map[string]interface{}{
+			"data": map[string]interface{}{
+				"id": fmt.Sprintf("%s",rs.Id),
+				"url": rs.Url,
+				"js": rs.Js,
+				"json": rs.Json,
+			},
+		})
+	}
+	header.Set("Content-Type", "application/json")
+	w.Write(jsonb)
+}
+
+func PageInternalJs(w http.ResponseWriter, req *http.Request) {
+	id := req.FormValue("id")
+	header := w.Header()
+	c := mongo.Collection{conn, fmt.Sprintf("%s.executes", appConfig.DbName), mongo.DefaultLastErrorCmd}
+	var (
+		rs ExecuteRs
+		jsonb []byte
+		err os.Error
+	)
+	execId, err := mongo.NewObjectIdHex(id)
+	log.Printf("Search ExecuteId=%s", execId)
+	err = c.Find(map[string]interface{}{"_id": execId}).One(&rs);
+	log.Println(rs)
+	if err != nil {
+		jsonb = []byte(`{error: "Not found."}`)
+	} else {
+		jsonb = []byte(rs.Js)
+	}
+	header.Set("Content-Type", "text/javascript")
+	w.Write(jsonb)
+}
+
+func PageInternalUpdateExecutedJson(w http.ResponseWriter, req *http.Request) {
+}
+
 func init() {
 	var (
 		configFilename string
@@ -295,7 +362,7 @@ func init() {
 
 	// Pararel executing channel
 	sem = make(chan int, appConfig.MaxVirtualDesktop)
-}
+ }
 
 func main() {
 	var err os.Error
@@ -313,6 +380,9 @@ func main() {
 	portNo := 1975
 	http.HandleFunc("/", PageIndex)
 	http.HandleFunc("/execute_js", PageExecuteJS)
+	http.HandleFunc("/internal/js", PageInternalJs)
+	http.HandleFunc("/internal/get_execute_info", PageInternalGetExecuteInfo)
+	http.HandleFunc("/internal/update_executed_json", PageInternalUpdateExecutedJson)
 	err = http.ListenAndServe(fmt.Sprintf(":%d", portNo), nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err.String())
