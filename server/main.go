@@ -147,7 +147,8 @@ func GetExecutedJS(execId mongo.ObjectId, retry int) []byte {
 
 	c := mongo.Collection{conn, fmt.Sprintf("%s.executes", appConfig.DbName), mongo.DefaultLastErrorCmd}
 	var rs ExecuteRs
-	err := c.Find(ExecuteRs{Id: execId}).One(&rs)
+	err := c.Find(map[string]interface{}{"_id": execId}).One(&rs);
+	//err := c.Find(ExecuteRs{Id: execId}).One(&rs)
 	if err != nil || rs.Json == "" {
 		fmt.Printf("INFO: ExecID=%q waiting...\n", execId)
 		time.Sleep(Second)
