@@ -94,7 +94,7 @@ func ExecuteJS(url string, js string) []byte {
 	environ := os.Environ()
 	environ = append(environ, fmt.Sprintf("DISPLAY=:%d.0", display))
 	command := "/usr/bin/firefox"
-	args := []string {command, "-display", fmt.Sprintf(":%d", display), "-remote", fmt.Sprintf("openUrl(%s)", AppendExecIdUrl(url, execId)), "-P", fmt.Sprintf("P%d", display)}
+	args := []string {command, "-display", fmt.Sprintf(":%d", display), "-remote", fmt.Sprintf("openUrl(%s)", AppendExecIdUrl(url, execId)), "-P", fmt.Sprintf("%s%d", appConfig.ProfileName, display)}
 	RunCommand(command, args, environ, nil)
 
 	// Waiting for registered result json.
@@ -172,7 +172,7 @@ func RunFirefox(display int, workingBox *WorkingBox) {
 	environ = append(environ, fmt.Sprintf("DISPLAY=:%d.0", display))
 	go func (d int, env []string) {
 		command := "/usr/bin/firefox"
-		args := []string {command, "-display", fmt.Sprintf(":%d", display), "-width", "1024", "-height", "800", "-P", fmt.Sprintf("P%d", display)}
+		args := []string {command, "-display", fmt.Sprintf(":%d", display), "-width", "1024", "-height", "800", "-P", fmt.Sprintf("%s%d", appConfig.ProfileName, display)}
 		RunCommand(command, args, env, workingBox)
 	}(display, environ)
 	time.Sleep(Second * 3)

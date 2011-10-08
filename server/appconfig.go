@@ -9,6 +9,7 @@ import (
 
 // 設定ファイルの値を表現する構造体
 type AppConfig struct {
+	ProfileName string
 	MaxVirtualDesktop int
 	MaxExecCount int
 	DbHost string
