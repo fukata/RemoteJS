@@ -1,2 +1,36 @@
 <h1><%= title %></h1>
-<p>Welcome to <%= title %></p>
+<p>API DEMO</p>
+
+<form action="./js" method="post">
+	<p>URL: <input type="text" name="url" id="url" size="50"/></p>
+	<p>
+		Execute JavaScript Function<br/>
+		<textarea name="js" id="js" cols="70" rows="20">function(){
+}</textarea>
+	</p>
+	<p><button id="go">Get JSON</button></p>
+</form>
+
+<h2>Reponse</h2>
+<pre id="response"></pre>
+<p>Last Response: <span id="date"></span></p>
+
+<script type="text/javascript">
+$(function(){
+	$('#go').click(function(){
+		var url = $('#url').val();
+		var js = $('#js').val();
+		$.ajax({
+			type: "post",
+			url: "/js",
+			data: {url: url, js: js},
+			cache: false,
+			dataType: "json",
+			success: function(data, dataType) {
+				$('#response').text(JSON.stringify(data));
+				$('#date').text(new Date());
+			}
+		});
+	});
+});
+</script>
