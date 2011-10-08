@@ -1,7 +1,7 @@
 <h1><%= title %></h1>
 <p>API DEMO</p>
 
-<form action="./js" method="post">
+<div>
 	<p>URL: <input type="text" name="url" id="url" size="50"/></p>
 	<p>
 		Execute JavaScript Function<br/>
@@ -9,15 +9,19 @@
 }</textarea>
 	</p>
 	<p><button id="go">Get JSON</button></p>
-</form>
+</div>
 
 <h2>Reponse</h2>
+<p>Status: <span id="status"></span></p>
+<p>Last Response Date: <span id="last_date"></span></p>
+<h3>Data</h3>
 <pre id="response"></pre>
-<p>Last Response: <span id="date"></span></p>
 
 <script type="text/javascript">
 $(function(){
 	$('#go').click(function(){
+		$('#status').text('Getting...');
+		$('#go').attr('disabled', true);
 		var url = $('#url').val();
 		var js = $('#js').val();
 		$.ajax({
@@ -27,8 +31,16 @@ $(function(){
 			cache: false,
 			dataType: "json",
 			success: function(data, dataType) {
+				$('#status').text('Success!!');
 				$('#response').text(JSON.stringify(data));
-				$('#date').text(new Date());
+				$('#last_date').text('' + new Date());
+			},
+			error: function(request, textStatus, errorThrown) {
+				$('#status').text('Error!!');
+				$('#response').text(JSON.stringify(errorThrown));
+			},
+			complete: function(request, textStatus) {
+				$('#go').attr('disabled', false);
 			}
 		});
 	});

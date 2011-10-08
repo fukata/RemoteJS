@@ -4,7 +4,7 @@
  */
 
 var express = require('express');
-var httpsubr = require('./httpsubr');
+var request = require('request');
 
 var app = module.exports = express.createServer();
 
@@ -46,18 +46,20 @@ app.post('/js', function(req, res){
   if (!url || !js) {
     res.json({});
   } else {
-    httpsubr.post({
+    request({
+		method: "POST",
 		//uri: 'http://localhost:1975/execute_js', 
-		uri: 'http://local.jsonserver:1975/execute_js', 
-		requestBody: {
-			url: url,
-			js: js,
-		}
-	}, function(err, response, buf) {
+		uri: 'http://local.jsonserver:1975/execute_js',
+		//json: true,
+		body: "url="+url+"&js="+js,
+	}, function(err, response, body) {
+		console.log(err);
+		console.log(response);
+		console.log(body);
 		if (err) {
 			res.json(err);
 		} else {
-			res.json(response);
+			res.json(body);
 		}
 	});
   }
