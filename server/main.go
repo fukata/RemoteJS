@@ -289,41 +289,6 @@ func PageExecuteJS(w http.ResponseWriter, req *http.Request) {
 	w.Write(json)
 }
 
-func PageIndex(w http.ResponseWriter, req *http.Request) {
-	p := map[string] string {}
-	t, _ := template.ParseFile("index.html")
-	t.Execute(w, p)
-}
-
-func PageInternalGetExecuteInfo(w http.ResponseWriter, req *http.Request) {
-	id := req.FormValue("id")
-	header := w.Header()
-	c := mongo.Collection{conn, fmt.Sprintf("%s.executes", appConfig.DbName), mongo.DefaultLastErrorCmd}
-	var (
-		rs ExecuteRs
-		jsonb []byte
-		err os.Error
-	)
-	execId, err := mongo.NewObjectIdHex(id)
-	log.Printf("Search ExecuteId=%s", execId)
-	err = c.Find(map[string]interface{}{"_id": execId}).One(&rs);
-	log.Println(rs)
-	if err != nil {
-		jsonb = []byte(`{error: "Not found."}`)
-	} else {
-		jsonb, err = json.Marshal(map[string]interface{}{
-			"data": map[string]interface{}{
-				"id": fmt.Sprintf("%s",rs.Id),
-				"url": rs.Url,
-				"js": rs.Js,
-				"json": rs.Json,
-			},
-		})
-	}
-	header.Set("Content-Type", "application/json")
-	w.Write(jsonb)
-}
-
 func PageInternalJs(w http.ResponseWriter, req *http.Request) {
 	id := req.FormValue("id")
 	header := w.Header()
@@ -407,10 +372,8 @@ func main() {
 	InitVirtualScreen()
 
 	portNo := 1975
-	http.HandleFunc("/", PageIndex)
 	http.HandleFunc("/execute_js", PageExecuteJS)
 	http.HandleFunc("/internal/js", PageInternalJs)
-	http.HandleFunc("/internal/get_execute_info", PageInternalGetExecuteInfo)
 	http.HandleFunc("/internal/update_json", PageInternalUpdateJson)
 	err = http.ListenAndServe(fmt.Sprintf(":%d", portNo), nil)
 	if err != nil {
