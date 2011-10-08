@@ -48,9 +48,7 @@ app.post('/js', function(req, res){
   } else {
     request({
 		method: "POST",
-		//uri: 'http://localhost:1975/execute_js', 
-		uri: 'http://local.jsonserver:1975/execute_js',
-		//json: true,
+		uri: 'http://localhost:1975/execute_js', 
 		body: "url="+url+"&js="+js,
 	}, function(err, response, body) {
 		console.log(err);
