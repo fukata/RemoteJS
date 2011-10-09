@@ -103,20 +103,7 @@ func ExecuteJS(url string, js string) []byte {
 	workingBoxes[display].ExecCount += 1 // Increment executed count. 
 	log.Printf("DisplayNo: %d ExecCount: %d\n", display, workingBoxes[display].ExecCount)
 
-	// Restart firefox execute limit over.。
-	if (workingBoxes[display].ExecCount >= appConfig.MaxExecCount) {
-		log.Printf("Firefox Restart DisplayNo: %d\n", display)
-		KillFirefox(display)
-		RunFirefox(display, workingBoxes[display])
-		go func () {
-			time.Sleep(Second * 10) // for initialization.
-			workingBoxes[display].ExecCount = 0
-			workingBoxes[display].Workings = 0
-		}()
-	} else {
-		workingBoxes[display].Workings -= 1
-	}
-
+	workingBoxes[display].Workings -= 1
 	conn.Close()
 
 	<-sem // Release
