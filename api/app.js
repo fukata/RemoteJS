@@ -5,6 +5,7 @@
 
 var express = require('express');
 var request = require('request');
+var appconfig = require('./appconfig').appconfig;
 
 var app = module.exports = express.createServer();
 
@@ -48,7 +49,7 @@ app.post('/js', function(req, res){
   } else {
     request({
 		method: "POST",
-		uri: 'http://localhost:1975/execute_js', 
+		uri: appconfig.executor_url + '/execute_js', 
 		body: "url="+url+"&js="+js,
 	}, function(err, response, body) {
 		console.log(err);
@@ -63,6 +64,6 @@ app.post('/js', function(req, res){
   }
 });
 
-var port = process.argv[2] || 3000;
+var port = process.argv[2] || appconfig.port || 3000;
 app.listen(port);
 console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
