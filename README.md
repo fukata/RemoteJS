@@ -19,3 +19,6 @@ To register the run JS API server.
 
 ### Run
 	node app.js 3030
+
+### Test
+	nodeunit test
