@@ -48,19 +48,19 @@ $(function(){
 
 	console.log("UpdateJson ID=%s", execId);
 	console.log(result);
-	$.post(
-		G_OPTIONS.executor_url + "/internal/update_json",
-		{id: execId, json: JSON.stringify(result)},
-		function(data) {
+	$.ajax({
+		url: G_OPTIONS.executor_url + "/internal/update_json",
+		data: {id: execId, json: JSON.stringify(result)},
+		complete: function(request, textStatus) {
 			window.close();
 		}
-	);
+	});
 });
 
-function getExecuteId() {
-	var queries = getQueryParams();
-	if (queries && G_OPTIONS.execute_id_param_key in queries) {
-		return queries[G_OPTIONS.execute_id_param_key];
+function getexecuteid() {
+	var queries = getqueryparams();
+	if (queries && g_options.execute_id_param_key in queries) {
+		return queries[g_options.execute_id_param_key];
 	} else {
 		return false;
 	}
