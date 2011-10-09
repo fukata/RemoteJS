@@ -49,6 +49,8 @@ $(function(){
 	console.log("UpdateJson ID=%s", execId);
 	console.log(result);
 	$.ajax({
+		type: "POST",
+		cache: false,
 		url: G_OPTIONS.executor_url + "/internal/update_json",
 		data: {id: execId, json: JSON.stringify(result)},
 		complete: function(request, textStatus) {
