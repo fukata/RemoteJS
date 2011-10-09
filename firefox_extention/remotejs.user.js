@@ -59,10 +59,10 @@ $(function(){
 	});
 });
 
-function getexecuteid() {
-	var queries = getqueryparams();
-	if (queries && g_options.execute_id_param_key in queries) {
-		return queries[g_options.execute_id_param_key];
+function getExecuteId() {
+	var queries = getQueryParams();
+	if (queries && G_OPTIONS.execute_id_param_key in queries) {
+		return queries[G_OPTIONS.execute_id_param_key];
 	} else {
 		return false;
 	}
