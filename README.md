@@ -21,6 +21,10 @@ Run the JS received and the results registered in the server. Install Firefox to
 ### Configuration
 	vi remotejs.user.js
 
+### window.close
+Firefox openurl "about:config" and change dom.allow_scripts_to_close_windows is true.
+	dom.allow_scripts_to_close_windows true
+
 ## API Server
 To register the run JS API server.
 
