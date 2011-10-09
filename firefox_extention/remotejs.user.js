@@ -8,7 +8,7 @@
 // @require			http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js
 // ==/UserScript==
 // ver 
-// 1.0 初回リリース
+// 0.1 Beta Release
 
 // ==============================================
 // Options
@@ -17,10 +17,12 @@ var G_OPTIONS = {
 	// 実行対象のIDのパラメーターキー
 	// string: __eid
 	"execute_id_param_key": "__eid",
-	"api_url": "http://localhost:1975"
+	// js_executorサーバのAPIURL
+	"executor_url": "http://localhost:1975"
 };
 // ==============================================
-jQuery(function(){
+
+$(function(){
 	if (window.opener || window != window.parent) {
 		return;
 	}
@@ -28,9 +30,9 @@ jQuery(function(){
 	var execId = getExecuteId();
 	if (!execId) return;
 
-	var js = jQuery.ajax({
+	var js = $.ajax({
 		type: "GET",
-		url: G_OPTIONS.api_url + "/internal/js?id="+execId,
+		url: G_OPTIONS.executor_url + "/internal/js?id="+execId,
 		async: false,
 		cache: false,
 		dataType: "text"
@@ -46,8 +48,8 @@ jQuery(function(){
 
 	console.log("UpdateJson ID=%s", execId);
 	console.log(result);
-	jQuery.post(
-		G_OPTIONS.api_url + "/internal/update_json",
+	$.post(
+		G_OPTIONS.executor_url + "/internal/update_json",
 		{id: execId, json: JSON.stringify(result)},
 		function(data) {
 			//window.close();
