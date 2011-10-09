@@ -39,6 +39,7 @@ type WorkingBox struct {
 	LastExecId mongo.ObjectId
 	Firefox *exec.Cmd
 	ExecCount int
+	Conn mongo.Conn
 }
 type ExecuteRs struct {
     Id mongo.ObjectId `bson:"_id"`
@@ -50,7 +51,6 @@ type ExecuteRs struct {
 var workingBoxes = map[int] *WorkingBox {}
 var appConfig appconfig.AppConfig
 var sem chan int
-var conn mongo.Conn
 
 /**
   Get enable display number of virtual screen.
@@ -78,8 +78,10 @@ func ExecuteJS(url string, js string) []byte {
 	log.Print("ExecuteJS begin")
 	sem <- 1    // Wait a inactive queue.
 
+	conn, err := GetConnection()
+
 	// Register url and js
-	execId, err := RegisterExecuteJS(url, js)
+	execId, err := RegisterExecuteJS(conn, url, js)
 	if err != nil {
 		log.Fatal("Can't register execute js.")
 	}
@@ -97,7 +99,7 @@ func ExecuteJS(url string, js string) []byte {
 	log.Printf("OpenURL DisplayNo: %d, URL: %s", display, url);
 
 	// Waiting for registered result json.
-	json := GetExecutedJS(execId, 1)
+	json := GetExecutedJS(conn, execId, 1)
 	workingBoxes[display].ExecCount += 1 // Increment executed count. 
 	log.Printf("DisplayNo: %d ExecCount: %d\n", display, workingBoxes[display].ExecCount)
 
@@ -114,6 +116,9 @@ func ExecuteJS(url string, js string) []byte {
 	} else {
 		workingBoxes[display].Working = false
 	}
+
+	conn.Close()
+
 	<-sem // Release
 	log.Print("ExecuteJS end")
 	return json
@@ -131,27 +136,27 @@ func AppendExecIdUrl(url string, execId mongo.ObjectId) string {
 	return url
 }
 
-func RegisterExecuteJS(url string, js string) (mongo.ObjectId, os.Error) {
-	c := mongo.Collection{conn, fmt.Sprintf("%s.executes", appConfig.DbName), mongo.DefaultLastErrorCmd}
+func RegisterExecuteJS(conn mongo.Conn, url string, js string) (mongo.ObjectId, os.Error) {
+	c := GetExecuteCollection(conn)
 	id := mongo.NewObjectId()
 	err := c.Insert(&ExecuteRs{Id: id, Url: url, Js: js})
 	return id, err
 }
 
-func GetExecutedJS(execId mongo.ObjectId, retry int) []byte {
+func GetExecutedJS(conn mongo.Conn, execId mongo.ObjectId, retry int) []byte {
 	if retry > appConfig.MaxRetryCount {
 		fmt.Printf("ERROR: failed to get result json(%q)\n", execId)
 		return []byte{}
 	}
 
-	c := mongo.Collection{conn, fmt.Sprintf("%s.executes", appConfig.DbName), mongo.DefaultLastErrorCmd}
+	c := GetExecuteCollection(conn)
 	var rs ExecuteRs
 	err := c.Find(map[string]interface{}{"_id": execId}).One(&rs);
 	//err := c.Find(ExecuteRs{Id: execId}).One(&rs)
 	if err != nil || rs.Json == "" {
 		fmt.Printf("INFO: ExecID=%q waiting...\n", execId)
 		time.Sleep(Second)
-		return GetExecutedJS(execId, retry + 1)
+		return GetExecutedJS(conn, execId, retry + 1)
 	}
 	return []byte(rs.Json)
 }
@@ -290,11 +295,11 @@ func PageExecuteJS(w http.ResponseWriter, req *http.Request) {
 func PageInternalJs(w http.ResponseWriter, req *http.Request) {
 	id := req.FormValue("id")
 	header := w.Header()
-	c := mongo.Collection{conn, fmt.Sprintf("%s.executes", appConfig.DbName), mongo.DefaultLastErrorCmd}
+	conn, err := GetConnection()
+	c := GetExecuteCollection(conn)
 	var (
 		rs ExecuteRs
 		jsonb []byte
-		err os.Error
 	)
 	execId, err := mongo.NewObjectIdHex(id)
 	log.Printf("Search ExecuteId=%s", execId)
@@ -305,6 +310,8 @@ func PageInternalJs(w http.ResponseWriter, req *http.Request) {
 		jsonb = []byte(rs.Js)
 	}
 
+	conn.Close();
+
 	header.Set("Access-Control-Allow-Origin", "*")
 	header.Set("Content-Type", "text/plain; charset=UTF-8")
 	w.Write(jsonb)
@@ -314,11 +321,11 @@ func PageInternalUpdateJson(w http.ResponseWriter, req *http.Request) {
 	id := req.FormValue("id")
 	updateJson := req.FormValue("json")
 	header := w.Header()
-	c := mongo.Collection{conn, fmt.Sprintf("%s.executes", appConfig.DbName), mongo.DefaultLastErrorCmd}
+	conn, err := GetConnection()
+	c := GetExecuteCollection(conn)
 	var (
 		rs ExecuteRs
 		jsonb []byte
-		err os.Error
 	)
 	execId, err := mongo.NewObjectIdHex(id)
 	log.Printf("Search ExecuteId=%s", execId)
@@ -335,9 +342,20 @@ func PageInternalUpdateJson(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
+	conn.Close()
+
 	header.Set("Access-Control-Allow-Origin", "*")
 	header.Set("Content-Type", "application/json")
 	w.Write(jsonb)
+}
+
+func GetConnection() (mongo.Conn, os.Error) {
+	conn, err := mongo.Dial(appConfig.DbHost)
+	return conn, err
+}
+
+func GetExecuteCollection(conn mongo.Conn) (mongo.Collection) {
+	return mongo.Collection{conn, fmt.Sprintf("%s.executes", appConfig.DbName), mongo.DefaultLastErrorCmd}
 }
 
 func init() {
@@ -358,13 +376,6 @@ func init() {
 
 func main() {
 	var err os.Error
-	// Database
-	conn, err = mongo.Dial(appConfig.DbHost)
-	if err != nil {
-		log.Fatal(err)
-		os.Exit(-1)
-	}
-	if conn == nil {}
 
 	// Virtual Screen
 	InitVirtualScreen()
