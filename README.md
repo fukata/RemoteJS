@@ -15,6 +15,9 @@ Firefox on the request to the virtual frame buffer and a request is received the
 ### Configuration
 	vi appconfig.go
 
+### Dependencies
+	goinstall github.com/garyburd/go-mongo
+
 ## Firefox UserScript
 Run the JS received and the results registered in the server. Install Firefox to run on a virtual frame buffer. (Otherwise, you need to install the Greasemonkey)
 
