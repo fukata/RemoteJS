@@ -12,6 +12,7 @@ type AppConfig struct {
 	ProfileName string
 	MaxVirtualDesktop int
 	MaxExecCount int
+	MaxRetryCount int
 	DbHost string
 	DbName string
 }
