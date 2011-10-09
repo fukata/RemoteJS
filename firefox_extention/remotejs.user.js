@@ -52,7 +52,7 @@ $(function(){
 		G_OPTIONS.executor_url + "/internal/update_json",
 		{id: execId, json: JSON.stringify(result)},
 		function(data) {
-			//window.close();
+			window.close();
 		}
 	);
 });
