@@ -52,14 +52,16 @@ app.post('/js', function(req, res){
 		uri: appconfig.executor_url + '/execute_js', 
 		body: "url="+url+"&js="+js,
 	}, function(err, response, body) {
-		console.log(err);
-		console.log(response);
 		console.log(body);
-		if (err) {
-			res.json(err);
-		} else {
-			res.json(body);
-		}
+		var parsed = {};
+		try {
+			if (err) {
+				parsed = JSON.parse(err);
+			} else {
+				parsed = JSON.parse(body);
+			}
+		} catch (e) {}
+		res.json(parsed);
 	});
   }
 });

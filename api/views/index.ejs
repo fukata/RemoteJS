@@ -32,7 +32,8 @@ $(function(){
 			dataType: "json",
 			success: function(data, dataType) {
 				$('#status').text('Success!!');
-				$('#response').text(JSON.stringify(data));
+				console.log(dataType);
+				$('#response').text(FormatJSON(data));
 				$('#last_date').text('' + new Date());
 			},
 			error: function(request, textStatus, errorThrown) {
