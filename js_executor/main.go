@@ -28,7 +28,7 @@ const (
  *  - web browser start.
  * # Main Process
  *  - open url.
- *  - take a picture.
+ *  - javascript execution.
  * # End Process
  *  - kill firefox.
  *  - kill virtual display.
@@ -36,7 +36,7 @@ const (
 type WorkingBox struct {
 	DisplayNo int
 	Working bool
-	LastUrl string
+	LastExecId mongo.ObjectId
 	Firefox *exec.Cmd
 	ExecCount int
 }
@@ -55,22 +55,20 @@ var conn mongo.Conn
 /**
   Get enable display number of virtual screen.
  */
-func GetDisplay(url string) (int) {
+func GetDisplay(execId mongo.ObjectId) (int) {
 	for i := 0; i < appConfig.MaxVirtualDesktop * 2; i++ {
 		display := rand.Intn(appConfig.MaxVirtualDesktop) + 1
 		workingBox := workingBoxes[display]
-		//動作中でなくて、以前変換したURLと別であること。同じURLだとキャプチャできないため。これはfirefox addonの方の問題。
-		//if !workingBox.Working && workingBox.LastUrl != url {
 		if !workingBox.Working {
 			workingBox.Working = true
-			workingBox.LastUrl = url
+			workingBox.LastExecId = execId
 			return display
 		}
-		log.Printf("display is %d, working or same url.\n", display)
+		log.Printf("display is %d, working or same execute ID.\n", display)
 	}
 
 	time.Sleep(Second)
-	return GetDisplay(url)
+	return GetDisplay(execId)
 }
 
 /**
@@ -83,10 +81,12 @@ func ExecuteJS(url string, js string) []byte {
 
 	// Register url and js
 	execId, err := RegisterExecuteJS(url, js)
-	if err != nil {}
+	if err != nil {
+		log.Fatal("Can't register execute js.")
+	}
 
 	// Setup execute display
-	display := GetDisplay(url)
+	display := GetDisplay(execId)
 
 	// Execute JS at firefox on xfvb.
 	environ := os.Environ()
@@ -183,20 +183,19 @@ func InitVirtualScreen() {
 		environ := os.Environ()
 		environ = append(environ, fmt.Sprintf("DISPLAY=:%d.0", i + 1))
 
-		// WorkingBoxesの初期化
-		workingBox := &WorkingBox{DisplayNo: display, Working: false, LastUrl: ""}
+		workingBox := &WorkingBox{DisplayNo: display, Working: false, LastExecId: ""}
+		workingBoxes[display] = workingBox
 
-		// Xvfbの起動
+		// Run Xvfb
 		go func (d int, env []string) {
 			command := "/usr/bin/Xvfb"
 			args := []string {command, fmt.Sprintf(":%d", d), "-screen", "0", "1024x768x24"}
 			RunCommand(command, args, env, nil)
 		}(display, environ)
 		time.Sleep(Second * 3)
-		// Firefoxの起動
+
+		// Run Firefox
 		RunFirefox(display, workingBox);
-		// WorkingBoxesの初期化
-		workingBoxes[display] = workingBox
 	}
 	rand.Seed(time.Nanoseconds() % 1e9)
 	log.Println("<<<<< InitVirtualScreen")
