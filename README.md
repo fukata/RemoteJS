@@ -8,11 +8,18 @@ Firefox on the request to the virtual frame buffer and a request is received the
 
 ### Compile
 	make
+
 ### Run
 	make run
 
+### Configuration
+	vi appconfig.go
+
 ## Firefox UserScript
 Run the JS received and the results registered in the server. Install Firefox to run on a virtual frame buffer. (Otherwise, you need to install the Greasemonkey)
+
+### Configuration
+	vi remotejs.user.js
 
 ## API Server
 To register the run JS API server.
@@ -22,3 +29,7 @@ To register the run JS API server.
 
 ### Test
 	nodeunit test
+
+### Configuration
+	vi appconfig.js
+
