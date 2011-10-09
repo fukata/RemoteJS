@@ -64,7 +64,7 @@ func GetDisplay(execId mongo.ObjectId) (int) {
 			workingBox.LastExecId = execId
 			return display
 		}
-		log.Printf("display is %d, working or same execute ID.\n", display)
+		log.Printf("Display is %d, working execute ID.\n", display)
 	}
 
 	time.Sleep(Second)
@@ -77,7 +77,6 @@ func GetDisplay(execId mongo.ObjectId) (int) {
 func ExecuteJS(url string, js string) []byte {
 	log.Print("ExecuteJS begin")
 	sem <- 1    // Wait a inactive queue.
-	log.Print("Found active queue.")
 
 	// Register url and js
 	execId, err := RegisterExecuteJS(url, js)
@@ -92,8 +91,10 @@ func ExecuteJS(url string, js string) []byte {
 	environ := os.Environ()
 	environ = append(environ, fmt.Sprintf("DISPLAY=:%d.0", display))
 	command := "/usr/bin/firefox"
-	args := []string {command, "-display", fmt.Sprintf(":%d", display), "-remote", fmt.Sprintf("openUrl(%s)", AppendExecIdUrl(url, execId)), "-P", fmt.Sprintf("%s%d", appConfig.ProfileName, display)}
+	url = AppendExecIdUrl(url, execId)
+	args := []string {command, "-display", fmt.Sprintf(":%d", display), "-remote", fmt.Sprintf("openUrl(%s)", url), "-P", fmt.Sprintf("%s%d", appConfig.ProfileName, display)}
 	RunCommand(command, args, environ, nil)
+	log.Printf("OpenURL DisplayNo: %d, URL: %s", display, url);
 
 	// Waiting for registered result json.
 	json := GetExecutedJS(execId, 1)
@@ -102,7 +103,7 @@ func ExecuteJS(url string, js string) []byte {
 
 	// Restart firefox execute limit over.。
 	if (workingBoxes[display].ExecCount >= appConfig.MaxExecCount) {
-		log.Printf("firefox restart display: %d\n", display)
+		log.Printf("Firefox Restart DisplayNo: %d\n", display)
 		KillFirefox(display)
 		RunFirefox(display, workingBoxes[display])
 		go func () {
