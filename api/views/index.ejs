@@ -1,6 +1,6 @@
 <h1><%= title %></h1>
 
-<div>
+<form action="/js" id="js_form">
 	<p>URL: <input type="text" name="url" id="url" size="50"/></p>
 	<p>
 		Execute JavaScript Function<br/>
@@ -9,7 +9,7 @@
 }</textarea>
 	</p>
 	<p><button id="go">Get JSON</button></p>
-</div>
+</form>
 
 <h2>Reponse</h2>
 <p>Status: <span id="status"></span></p>
@@ -26,7 +26,7 @@ $(function(){
 		var js = $('#js').val();
 		$.ajax({
 			type: "post",
-			url: "/js",
+			url: $('#js_form').attr('action'),
 			data: {url: url, js: js},
 			cache: false,
 			dataType: "json",
