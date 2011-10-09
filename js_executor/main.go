@@ -141,7 +141,7 @@ func RegisterExecuteJS(url string, js string) (mongo.ObjectId, os.Error) {
 func GetExecutedJS(execId mongo.ObjectId, retry int) []byte {
 	if retry > appConfig.MaxRetryCount {
 		fmt.Printf("ERROR: failed to get result json(%q)\n", execId)
-		return []byte{}
+		return []byte("{}")
 	}
 
 	c := mongo.Collection{conn, fmt.Sprintf("%s.executes", appConfig.DbName), mongo.DefaultLastErrorCmd}
