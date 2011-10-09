@@ -272,7 +272,7 @@ func PageExecuteJS(w http.ResponseWriter, req *http.Request) {
 		log.Printf("ERROR: failed to execute. (%s)\n", url)
 		json = []byte("{}")
 	}
-	header.Set("Content-Type", "application/json")
+	header.Set("Content-Type", "application/json;charset=UTF-8;")
 	w.Write(json)
 }
 
