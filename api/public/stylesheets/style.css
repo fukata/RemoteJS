@@ -6,3 +6,9 @@ body {
 a {
   color: #00B7FF;
 }
+
+#response {
+	font-size: small; 
+	background-color: #eee;
+	padding: 5px;
+}
