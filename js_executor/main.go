@@ -35,7 +35,6 @@ const (
  */
 type WorkingBox struct {
 	DisplayNo int
-	Working bool
 	Workings int
 	LastExecId mongo.ObjectId
 	Firefox *exec.Cmd
@@ -61,7 +60,6 @@ func GetDisplay(execId mongo.ObjectId) (int) {
 		display := rand.Intn(appConfig.MaxVirtualDesktop) + 1
 		workingBox := workingBoxes[display]
 		if workingBox.Workings <= appConfig.ParallelExecCount {
-			workingBox.Working = true
 			workingBox.Workings += 1
 			workingBox.LastExecId = execId
 			return display
@@ -113,11 +111,9 @@ func ExecuteJS(url string, js string) []byte {
 		go func () {
 			time.Sleep(Second * 10) // for initialization.
 			workingBoxes[display].ExecCount = 0
-			workingBoxes[display].Working = false
 			workingBoxes[display].Workings = 0
 		}()
 	} else {
-		workingBoxes[display].Working = false
 		workingBoxes[display].Workings -= 1
 	}
 
@@ -193,7 +189,7 @@ func InitVirtualScreen() {
 		environ := os.Environ()
 		environ = append(environ, fmt.Sprintf("DISPLAY=:%d.0", i + 1))
 
-		workingBox := &WorkingBox{DisplayNo: display, Working: false, LastExecId: ""}
+		workingBox := &WorkingBox{DisplayNo: display, Workings: 0, LastExecId: ""}
 		workingBoxes[display] = workingBox
 
 		// Run Xvfb
@@ -372,7 +368,7 @@ func init() {
 	}
 
 	// Parallel executing channel
-	sem = make(chan int, appConfig.MaxVirtualDesktop)
+	sem = make(chan int, appConfig.ParallelExecCount)
  }
 
 func main() {
