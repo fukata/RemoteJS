@@ -13,6 +13,7 @@ type AppConfig struct {
 	MaxVirtualDesktop int
 	MaxExecCount int
 	MaxRetryCount int
+	FirefoxBin string
 	DbHost string
 	DbName string
 }

@@ -92,7 +92,7 @@ func ExecuteJS(url string, js string) []byte {
 	// Execute JS at firefox on xfvb.
 	environ := os.Environ()
 	environ = append(environ, fmt.Sprintf("DISPLAY=:%d.0", display))
-	command := "/usr/bin/firefox"
+	command := appConfig.FirefoxBin
 	url = AppendExecIdUrl(url, execId)
 	args := []string {command, "-display", fmt.Sprintf(":%d", display), "-remote", fmt.Sprintf("openUrl(%s)", url), "-P", fmt.Sprintf("%s%d", appConfig.ProfileName, display)}
 	RunCommand(command, args, environ, nil)
@@ -175,7 +175,7 @@ func RunFirefox(display int, workingBox *WorkingBox) {
 	environ := os.Environ()
 	environ = append(environ, fmt.Sprintf("DISPLAY=:%d.0", display))
 	go func (d int, env []string) {
-		command := "/usr/bin/firefox"
+		command := appConfig.FirefoxBin
 		args := []string {command, "-display", fmt.Sprintf(":%d", display), "-width", "1024", "-height", "800", "-P", fmt.Sprintf("%s%d", appConfig.ProfileName, display)}
 		RunCommand(command, args, env, workingBox)
 	}(display, environ)
