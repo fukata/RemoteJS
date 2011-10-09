@@ -12,6 +12,7 @@ type AppConfig struct {
 	ProfileName string
 	MaxVirtualDesktop int
 	MaxExecCount int
+	ParallelExecCount int
 	MaxRetryCount int
 	FirefoxBin string
 	DbHost string

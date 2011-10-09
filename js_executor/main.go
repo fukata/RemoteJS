@@ -36,6 +36,7 @@ const (
 type WorkingBox struct {
 	DisplayNo int
 	Working bool
+	Workings int
 	LastExecId mongo.ObjectId
 	Firefox *exec.Cmd
 	ExecCount int
@@ -59,8 +60,9 @@ func GetDisplay(execId mongo.ObjectId) (int) {
 	for i := 0; i < appConfig.MaxVirtualDesktop * 2; i++ {
 		display := rand.Intn(appConfig.MaxVirtualDesktop) + 1
 		workingBox := workingBoxes[display]
-		if !workingBox.Working {
+		if workingBox.Workings <= appConfig.ParallelExecCount {
 			workingBox.Working = true
+			workingBox.Workings += 1
 			workingBox.LastExecId = execId
 			return display
 		}
@@ -112,9 +114,11 @@ func ExecuteJS(url string, js string) []byte {
 			time.Sleep(Second * 10) // for initialization.
 			workingBoxes[display].ExecCount = 0
 			workingBoxes[display].Working = false
+			workingBoxes[display].Workings = 0
 		}()
 	} else {
 		workingBoxes[display].Working = false
+		workingBoxes[display].Workings -= 1
 	}
 
 	conn.Close()
@@ -367,7 +371,7 @@ func init() {
 		os.Exit(-1)
 	}
 
-	// Pararel executing channel
+	// Parallel executing channel
 	sem = make(chan int, appConfig.MaxVirtualDesktop)
  }
 
