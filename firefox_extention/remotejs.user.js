@@ -38,6 +38,7 @@ $(function(){
 		dataType: "text"
 	}).responseText;
 
+	setTimeout(function(){ window.close(); }, 10000);
 	var result = {};
 	try {
 		var func = eval('(' + js + ')');
