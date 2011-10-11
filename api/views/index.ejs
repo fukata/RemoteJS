@@ -13,15 +13,19 @@
 
 <h2>Reponse</h2>
 <p>Status: <span id="status"></span></p>
-<p>Last Response Date: <span id="last_date"></span></p>
+<p>Start Date: <span id="start_date"></span></p>
+<p>End Date: <span id="end_date"></span></p>
+<p>Time: <span id="time"></span></p>
 <h3>Data</h3>
 <pre id="response"></pre>
 
 <script type="text/javascript">
 $(function(){
 	$('#go').click(function(){
+		var startDate = new Date();
 		$('#status').text('Getting...');
 		$('#go').attr('disabled', true);
+		$('#start_date').text('' + startDate);
 		var url = $('#url').val();
 		var js = $('#js').val();
 		$.ajax({
@@ -31,10 +35,12 @@ $(function(){
 			cache: false,
 			dataType: "json",
 			success: function(data, dataType) {
+				var endDate = new Date();
 				$('#status').text('Success!!');
 				console.log(dataType);
 				$('#response').text(FormatJSON(data));
-				$('#last_date').text('' + new Date());
+				$('#end_date').text('' + endDate);
+				$('#time').text((endDate.getTime() - startDate.getTime()) + ' ms');
 			},
 			error: function(request, textStatus, errorThrown) {
 				$('#status').text('Error!!');
